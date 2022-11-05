@@ -24,30 +24,38 @@ Feature list:
 
 - [x] rate per action
 - [x] rate per second
-- [ ] rate per second reset after every successful action
-- [ ] rate per total locked value
 
 To enfoce the limit, a modifier is provided which can be added to the methods to be protected.
 
 As an example, if the rate per action wants to be enforced, the modifier `enforceRatePerAction(amount)` can be added to the `stake(uint amount)` method.
 
-### Navigating the code
+### 💻 Navigating the code
 
-Examples on how each rate limit can be enforced are found in [Stake.sol](./src/Stake.sol).
+Examples on how each rate limit can be enforced are found in:
 
-The contract implementing the rate limits is [RateLimit.sol](./src/RateLimit.sol).
+- [StakePerAction.sol](./src/stake/StakePerAction.sol)
+- [StakePerSecond.sol](./src/stake/StakePerSecond.sol)
 
-The unit tests and fuzzing tests are found in [Stake.t.sol](./src/Stake.t.sol).
+The corresponding contract implementing the rate limits are:
 
-### Rate per action
+- [RateLimitPerAction.sol](./src/ratelimit/RateLimitPerAction.sol)
+- [RateLimitPerSecond.sol](./src/ratelimit/RateLimitPerSecond.sol)
 
-This rate can be set by calling the `internal` method `RateLimit._setRatePerAction(uint256 ratePerAction_)` to define a hard maximum limit per action.
+The unit tests and fuzzing tests are found in:
+
+- [StakePerAction.t.sol](./src/StakePerAction.t.sol)
+- [StakePerSecond.t.sol](./src/StakePerSecond.t.sol)
+
+### 🕺 Rate per action
+
+This rate can be set by calling the `internal` method `RateLimitPerAction._setRatePerAction(uint256 ratePerAction_)` to define a hard maximum limit per action.
 
 The action can be protected by using the modifier `enforceRatePerAction(uint256 amount_)` which checks if the specified amount is lower or equal to the set rate per action. If the condition is not met, the transaction reverts.
 
 Of course, an attacker could split their action into multiple actions which stay below the specified limit. Inherently, this type of protection is exposed to action splitting, which in practice doesn't protect too much from a malicious actor who found an exploit in the system.
 
-### Rate per second
+### ⏲️ Rate per second
 
-This rate can be set by calling
+This rate can be set by calling the `internal` method `RateLimitPerSecond._setRatePerSecond(uint256 ratePerSecond_)` to define a hard maximum limit per second since the limit was set.
 
+The action can be protected by using the modifier `enforceRatePerSecond(uint256 amount_)` which checks if the cumulative amount of deposited tokens obeys the specified rate per second limit since the limit was defined.
