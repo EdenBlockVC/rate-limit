@@ -2,11 +2,11 @@
 pragma solidity ^0.8.16;
 
 import "forge-std/Test.sol";
-import "./Stake.sol";
+import {Stake} from "src/stake/StakePerSecond.sol";
 
-import {ERC20Mintable} from "./token/ERC20Mintable.sol";
+import {ERC20Mintable} from "src/token/ERC20Mintable.sol";
 
-contract StakeTest is Test {
+contract StakePerSecondTest is Test {
     Stake public stake;
     ERC20Mintable public token;
 
@@ -21,41 +21,6 @@ contract StakeTest is Test {
         token.mint(address(this), amountTotal);
         token.approve(address(stake), amountTotal);
     }
-
-    function test_SetFixedRate() public {
-        stake.setRatePerAction(10);
-        assertEq(stake.ratePerAction(), 10);
-    }
-
-    function test_DepositWithinFixedRate_isSuccessful(uint256 amount) public {
-        uint256 ratePerAction = 10;
-        stake.setRatePerAction(ratePerAction);
-
-        // Enforce fuzzer to limit amount to a valid rate
-        vm.assume(amount <= ratePerAction);
-
-        // Deposit an amount within the rate per action constraints
-        stake.depositWithRatePerAction(amount);
-    }
-
-    function testFail_DepositWithRatePerAction_enforcesLimit(uint256 amount) public {
-        uint256 ratePerAction = 10;
-        stake.setRatePerAction(ratePerAction);
-
-        // Enforce fuzzer to set amount over the valid rate
-        vm.assume(amount > ratePerAction);
-
-        // Deposit should fail since the amount is over the valid rate
-        stake.depositWithRatePerAction(amount);
-    }
-
-    function testFail_DepositWithRatePerAction_enforcesLimit() public {
-        uint256 ratePerAction = 10;
-        stake.setRatePerAction(ratePerAction);
-
-        // Deposit should fail since the amount is over the valid rate
-        stake.depositWithRatePerAction(ratePerAction + 1);
-    }    
 
     function testDepositWithinPerSecondLimit_isSuccessful(uint256 amount) public {
         uint256 ratePerSecond = 10;
@@ -109,5 +74,5 @@ contract StakeTest is Test {
 
         // This action pushes over the rate
         stake.depositWithRatePerSecond(1);
-    }    
+    }
 }

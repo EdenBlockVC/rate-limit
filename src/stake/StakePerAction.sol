@@ -2,9 +2,9 @@ pragma solidity ^0.8.16;
 
 import {IERC20} from "openzeppelin-contracts/token/ERC20/IERC20.sol";
 
-import {RateLimit} from "./RateLimit.sol";
+import {RateLimitPerAction} from "src/ratelimit/RateLimitPerAction.sol";
 
-contract Stake is RateLimit {
+contract Stake is RateLimitPerAction {
     // balances stores how many tokens each user deposited
     mapping(address => uint256) public balances;
 
@@ -12,7 +12,7 @@ contract Stake is RateLimit {
     address public owner;
 
     // OnlyOwner is emitted when someone else tried to a protected method
-    error OnlyOwner(address owner,address caller);
+    error OnlyOwner(address owner, address caller);
 
     // checkCaller reverts if the caller is not the owner
     function checkCaller() private view {
@@ -32,8 +32,6 @@ contract Stake is RateLimit {
         owner = msg.sender;
     }
 
-    /// --- Rate per action --- ///
-
     // setRatePerAction defines a maximum rate allowed per action
     function setRatePerAction(uint256 ratePerAction_) public {
         // Only the owner can change the rate
@@ -44,23 +42,6 @@ contract Stake is RateLimit {
 
     // depositWithRatePerAction allows the user to deposit tokens enforcing the max rate allowed per action
     function depositWithRatePerAction(uint256 amount_) public enforceRatePerAction(amount_) {
-        token.transferFrom(msg.sender, address(this), amount_);
-
-        balances[msg.sender] += amount_;
-    }
-
-    /// --- Rate per second --- ///
-
-    // setRatePerSecond defines a maximum rate allowed per second 
-    function setRatePerSecond(uint256 ratePerSecond_) public {
-        // Only the owner can change the rate
-        checkCaller();
-
-        _setRatePerSecond(ratePerSecond_);
-    }
-
-    // depositWithRatePerSecond allows the user to deposit tokens enforcing the rate per second allowed
-    function depositWithRatePerSecond(uint amount_) public enforceRatePerSecond(amount_) {
         token.transferFrom(msg.sender, address(this), amount_);
 
         balances[msg.sender] += amount_;
