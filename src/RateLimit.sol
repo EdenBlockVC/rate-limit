@@ -1,48 +1,59 @@
 pragma solidity ^0.8.16;
 
 contract RateLimit {
-    uint256 public ratePerSecond;
-    uint256 public fixedRate;
+    /// --- Rate per action --- ///
 
-    uint256 public lastTimestamp;
+    uint256 public ratePerAction;
 
-    error FixedRateEnforced(uint256 fixedRate_, uint256 amount_);
+    error FixedRateEnforced(uint256 ratePerAction_, uint256 amount_);
 
-    modifier enforceFixedRate(uint256 amount_) {
+    modifier enforceRatePerAction(uint256 amount_) {
         // Enforce limit
-        if (amount_ > fixedRate) {
-            revert FixedRateEnforced(fixedRate, amount_);
+        if (amount_ > ratePerAction) {
+            revert FixedRateEnforced(ratePerAction, amount_);
         }
 
         // Allow execution
         _;
     }
 
-    function _setFixedRate(uint256 fixedRate_) internal {
-        fixedRate = fixedRate_;
+    function _setRatePerAction(uint256 ratePerAction_) internal {
+        ratePerAction = ratePerAction_;
     }
 
-    // modifier enforceRateLimitPerSecond(uint256 amount_) {
-    //     // Make sure the rate is respected
-    //     require(
-    //         // Rate if the tx is executed
-    //         amount / (block.timestamp - lastTimestamp)
-    //         // Set rate
-    //         <= ratePerSecond
-    //     );
+    /// --- Rate per second --- ///
 
-    //     // Save the last timestamp
-    //     lastTimestamp = block.timestamp;
+    uint256 public ratePerSecond;
 
-    //     // Allow execution
-    //     _;
-    // }
+    uint256 public initialTimestamp;
+    uint256 public cumulativeAmount;
 
-    // function _setRatePerSecond(uint256 ratePerSecond_) internal {
-    //     // Set new rate
-    //     ratePerSecond = ratePerSecond_;
+    error RatePerSecondEnforced(uint256 ratePerSecond, uint256 amountBreakingLimit);
 
-    //     // Reset timestamp
-    //     lastTimestamp = block.timestamp;
-    // }
+    modifier enforceRatePerSecond(uint256 amount_) {
+        // Enforce limit
+        if (
+            (cumulativeAmount + amount_) / (block.timestamp - initialTimestamp) >
+            ratePerSecond
+        ) {
+            revert RatePerSecondEnforced(ratePerSecond, amount_);
+        }
+
+        // Update cumulative amount
+        cumulativeAmount += amount_;
+
+        // Allow execution
+        _;
+    }
+
+    function _setRatePerSecond(uint256 ratePerSecond_) internal {
+        // Set new rate
+        ratePerSecond = ratePerSecond_;
+
+        // Reset timestamp
+        initialTimestamp = block.timestamp;
+
+        // Reset amount
+        cumulativeAmount = 0;
+    }
 }

@@ -17,62 +17,97 @@ contract StakeTest is Test {
         token = new ERC20Mintable("Test", "TST");
         stake = new Stake(token);
 
+        // Create tokens and allow all of them to be used by the staking contract
         token.mint(address(this), amountTotal);
         token.approve(address(stake), amountTotal);
     }
 
-    function testSetFixedRate() public {
-        stake.setFixedRate(10);
-        assertEq(stake.fixedRate(), 10);
+    function test_SetFixedRate() public {
+        stake.setRatePerAction(10);
+        assertEq(stake.ratePerAction(), 10);
     }
 
-    function testDepositWithinFixedRate(uint256 amount) public {
-        uint256 fixedRate = 10;
-        stake.setFixedRate(fixedRate);
+    function test_DepositWithinFixedRate_isSuccessful(uint256 amount) public {
+        uint256 ratePerAction = 10;
+        stake.setRatePerAction(ratePerAction);
 
-        vm.assume(amount <= fixedRate);
+        // Enforce fuzzer to limit amount to a valid rate
+        vm.assume(amount <= ratePerAction);
 
-        stake.depositWithFixedRate(amount);
+        // Deposit an amount within the rate per action constraints
+        stake.depositWithRatePerAction(amount);
     }
 
-    function testFailDepositWithFixedRateEnforcesLimit(uint256 amount) public {
-        uint256 fixedRate = 10;
-        stake.setFixedRate(fixedRate);
+    function testFail_DepositWithRatePerAction_enforcesLimit(uint256 amount) public {
+        uint256 ratePerAction = 10;
+        stake.setRatePerAction(ratePerAction);
 
-        vm.assume(amount > fixedRate);
+        // Enforce fuzzer to set amount over the valid rate
+        vm.assume(amount > ratePerAction);
 
-        stake.depositWithFixedRate(amount);
+        // Deposit should fail since the amount is over the valid rate
+        stake.depositWithRatePerAction(amount);
     }
 
-    function testDepositWithinPerSecondLimit(uint256 amount) public {
+    function testFail_DepositWithRatePerAction_enforcesLimit() public {
+        uint256 ratePerAction = 10;
+        stake.setRatePerAction(ratePerAction);
+
+        // Deposit should fail since the amount is over the valid rate
+        stake.depositWithRatePerAction(ratePerAction + 1);
+    }    
+
+    function testDepositWithinPerSecondLimit_isSuccessful(uint256 amount) public {
         uint256 ratePerSecond = 10;
-        stake.setRatePerSecond(10);
+        stake.setRatePerSecond(ratePerSecond);
 
+        // Travel 1 second in the future to make some room for new deposits
         vm.warp(block.timestamp + 1);
+
+        // Enforce fuzzer to limit amount to a valid rate
         vm.assume(amount <= ratePerSecond);
 
-        stake.depositWithFixedRate(amount);
-
+        // Deposit an amount within the rate per second constraints
+        stake.depositWithRatePerSecond(amount);
     }
 
-    // function testSetRatePerSecond() public {
-    //     stake.setRatePerSecond(10);
-    //     assertEq(stake.ratePerSecond(), 10);
-    // }
+    function testFailDepositWithinRatePerSecond_enforcesLimit(uint256 amount) public {
+        uint256 ratePerSecond = 10;
+        stake.setRatePerSecond(ratePerSecond);
 
-    // function testDepositTooQuickly() public {
-    //     uint256 maxRatePerSecond = 10;
-    //     stake.setRatePerSecond(maxRatePerSecond);
+        // Travel 1 second in the future to make some room for new deposits
+        vm.warp(block.timestamp + 1);
 
-    //     // Move moment in time
-    //     // vm.warp(block.timestamp + 1);
+        // Enforce fuzzer to set amount over the valid rate
+        vm.assume(amount > ratePerSecond);
 
-    //     // First deposit should work correctly
-    //     // and it will use the full set rate
-    //     stake.deposit(maxRatePerSecond + 1);
+        // Deposit should fail since the amount is over the valid rate
+        stake.depositWithRatePerSecond(amount);
+    }
 
-    //     // Second deposit in the same block should fail
-    //     // because it breaks the rate limit
-    //     stake.deposit(1);
-    // }
+    function testDepositWithinRatePerSecond_allowsMultipleActionsWithinConstraints() public {
+        uint256 ratePerSecond = 10;
+        stake.setRatePerSecond(ratePerSecond);
+
+        // Travel 1 second in the future to make some room for new deposits
+        vm.warp(block.timestamp + 1);
+
+        // Multiple actions within the rate should be successful
+        stake.depositWithRatePerSecond(ratePerSecond / 2);
+        stake.depositWithRatePerSecond(ratePerSecond / 2);
+    }
+
+    function testFailDepositWithinRatePerSecond_blocksMultipleActionsOutsideOfConstraints() public {
+        uint256 ratePerSecond = 10;
+        stake.setRatePerSecond(ratePerSecond);
+
+        // Travel 1 second in the future to make some room for new deposits
+        vm.warp(block.timestamp + 1);
+
+        // This action is within constraints
+        stake.depositWithRatePerSecond(ratePerSecond);
+
+        // This action pushes over the rate
+        stake.depositWithRatePerSecond(1);
+    }    
 }
