@@ -27,21 +27,32 @@ contract StakeTest is Test {
     }
 
     function testDepositWithinFixedRate(uint256 amount) public {
-        uint256 ratePerSecond = 10;
-        stake.setFixedRate(ratePerSecond);
+        uint256 fixedRate = 10;
+        stake.setFixedRate(fixedRate);
 
-        vm.assume(amount <= ratePerSecond);
+        vm.assume(amount <= fixedRate);
 
         stake.depositWithFixedRate(amount);
     }
 
     function testFailDepositWithFixedRateEnforcesLimit(uint256 amount) public {
-        uint256 ratePerSecond = 10;
-        stake.setFixedRate(ratePerSecond);
+        uint256 fixedRate = 10;
+        stake.setFixedRate(fixedRate);
 
-        vm.assume(amount > ratePerSecond);
+        vm.assume(amount > fixedRate);
 
         stake.depositWithFixedRate(amount);
+    }
+
+    function testDepositWithinPerSecondLimit(uint256 amount) public {
+        uint256 ratePerSecond = 10;
+        stake.setRatePerSecond(10);
+
+        vm.warp(block.timestamp + 1);
+        vm.assume(amount <= ratePerSecond);
+
+        stake.depositWithFixedRate(amount);
+
     }
 
     // function testSetRatePerSecond() public {

@@ -13,9 +13,11 @@ contract Stake is RateLimit {
         token = token_;
     }
 
-    function setFixedRate(uint256 ratePerSecond_) public {
-        _setFixedRate(ratePerSecond_);
+    function setFixedRate(uint256 fixedRate_) public {
+        _setFixedRate(fixedRate_);
     }
+
+    function setRatePerSecond(uint256 rate)
 
     function depositWithFixedRate(uint256 amount) public enforceFixedRate(amount) {
         token.transferFrom(msg.sender, address(this), amount);
