@@ -129,4 +129,24 @@ contract StakePerDynamicBucketTest is Test {
         // Deposit the initial rate should be successful
         stake.deposit(amount);
     }
+
+    function testFailDeposit_afterABucketIsSkipped_enforcesInitialLimit() public {
+        // Set rate
+        uint256 ratePerBucket = 100;
+        uint256 bucketSize = 3600; // 1 hour
+        stake.setRatePerDynamicBucket(ratePerBucket, bucketSize);
+        stake.setBucketIncreaseDenominator(10); // 10%
+
+        // Deposit an amount above the rate constraints
+        // but within max increase per bucket
+        uint256 amount = ratePerBucket;
+        stake.deposit(amount);
+
+        // Move into the future to make sure we skip a bucket
+        // thus having a bucket with 0 rate limit between actions
+        vm.warp(block.timestamp + bucketSize * 2);
+
+        // Depositing initial rate + 1 should fail
+        stake.deposit(amount + 1);
+    }
 }

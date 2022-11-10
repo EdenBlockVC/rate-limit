@@ -1,8 +1,6 @@
 pragma solidity ^0.8.16;
 
-import "forge-std/Test.sol";
-
-contract RateLimitPerDynamicBucket is Test {
+contract RateLimitPerDynamicBucket {
     // uint256 public rate;
     uint256 public bucketSize;
 
@@ -18,24 +16,18 @@ contract RateLimitPerDynamicBucket is Test {
 
     modifier enforceRatePerBucket(uint256 amount_) {
         uint256 bucketIndex = block.timestamp / bucketSize;
-        emit log_uint(bucketIndex);
-
         uint256 currentBucket = buckets[bucketSize][bucketIndex];
-        emit log_uint(currentBucket);
-
         uint256 previousBucket = buckets[bucketSize][bucketIndex - 1];
-        // Enforce a minimum rate
-        if (previousBucket < minRate) {
-            previousBucket = minRate;
-        }
-        emit log_uint(previousBucket);
 
         // Add a percent max increase per bucket
         uint256 previousBucketMax = previousBucket + previousBucket / denominator;
 
+        // Enforce a minimum rate
+        if (previousBucketMax < minRate) {
+            previousBucketMax = minRate;
+        }
+
         // Enforce rate per bucket
-        emit log_uint(currentBucket);
-        emit log_uint(currentBucket);
         if ((currentBucket + amount_) > previousBucketMax) {
             revert RatePerBucketEnforced(previousBucketMax, amount_);
         }
