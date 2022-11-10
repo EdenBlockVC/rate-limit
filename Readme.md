@@ -24,6 +24,7 @@ Feature list:
 
 - [x] rate per action
 - [x] rate per second
+- [x] rate per dynamic bucket
 
 To enfoce the limit, a modifier is provided which can be added to the methods to be protected.
 
@@ -35,16 +36,19 @@ Examples on how each rate limit can be enforced are found in:
 
 - [StakePerAction.sol](./src/stake/StakePerAction.sol)
 - [StakePerSecond.sol](./src/stake/StakePerSecond.sol)
+- [StakePerDynamicBucket.sol](./src/stake/StakePerDynamicBucket.sol)
 
 The corresponding contract implementing the rate limits are:
 
 - [RateLimitPerAction.sol](./src/ratelimit/RateLimitPerAction.sol)
 - [RateLimitPerSecond.sol](./src/ratelimit/RateLimitPerSecond.sol)
+- [RateLimitPerDynamicBucket.sol](./src/ratelimit/RateLimitPerDynamicBucket.sol)
 
 The unit tests and fuzzing tests are found in:
 
 - [StakePerAction.t.sol](./src/StakePerAction.t.sol)
 - [StakePerSecond.t.sol](./src/StakePerSecond.t.sol)
+- [StakePerDynamicBucket.t.sol](./src/StakePerDynamicBucket.t.sol)
 
 ### 🕺 Rate per action
 
