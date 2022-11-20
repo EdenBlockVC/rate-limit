@@ -1,5 +1,9 @@
 # 🚤 Rate limit
 
+## Description
+
+Presented first in this [tweet thread](https://twitter.com/cleanunicorn/status/1590714955342303232).
+
 Proof of concept which implements rate limits for smart contracts dealing with ERC20-compatible tokens.
 
 The purpose of this contract is to provide an example of how a developer can set limits for their own protocol to limit the damage a hack can do. It does not protect from hacks itself, but it can limit the damage caused by it.
